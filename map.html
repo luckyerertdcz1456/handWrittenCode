@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        Array.prototype._map=function(callback,thisArg){
+            if(typeof callback!=="function"){
+                throw Error('参数必须是函数')
+            }
+            const mapArray=[]
+            const thisContext=thisArg||globalThis
+            for(let i=0;i<this.length;i++){
+                mapArray.push(callback.call(thisContext,this[i],i,this))
+            }
+            return mapArray;
+        }
+        const nums=[1,2,3,4,5]
+        const mapNums=nums._map(num=> num*2)
+        console.log(mapNums);
+    </script>
+</body>
+</html>

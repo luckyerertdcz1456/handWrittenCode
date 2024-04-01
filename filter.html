@@ -22,6 +22,11 @@
                 //使用call方法将this绑定到thisContext上，并传入当前元素和索引
                 if (callback.call(thisContext,this[i],i,this)){
                     //如果回调函数返回true，将当前元素添加到结果数组中
+                    /* 
+                    这个条件判断的作用是检查回调函数 callback 在当前数组元素上的执行结果是否为真（即返回值为 true）。
+                    如果回调函数返回 true，则将当前元素添加到结果数组 filteredArray 中。
+
+                } */
                     filteredArray.push(this[i])
 
                 }
