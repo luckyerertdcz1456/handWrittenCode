@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        /*  let fn = () => void console.log('一条语句');;
+         console.log(fn()); */
+        /* 
+        结果：
+        一条语句
+        undefined
+         */
+        // 定义一个构造函数
+        function Car(make, model, year) {
+            // 使用 this 关键字定义对象的属性
+            this.make = make;
+            this.model = model;
+            this.year = year;
+
+            // 定义对象的方法
+            this.start = function () {
+                console.log('Engine started');
+            };
+        }
+
+        // 使用构造函数创建新对象实例
+        var myCar = new Car('Toyota', 'Camry', 2020);
+
+        // 访问对象的属性和方法
+        console.log(myCar.make);  // 输出：Toyota
+        console.log(myCar.model); // 输出：Camry
+        console.log(myCar.year);  // 输出：2020
+        myCar.start();            // 输出：Engine started
+
+    </script>
+</body>
+
+</html>
