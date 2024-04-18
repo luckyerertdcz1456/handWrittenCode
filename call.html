@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>手写call方法</h2>
+</body>
+<script>
+    /* 
+    手写call方法
+    1.定义call方法
+    2.设置this（改变this指向）和调用原函数
+    3.接收剩余参数和返回结果
+    4.使用Symbol调优，解决this所指内容的属性名重复问题
+     */
+    //1.定义myCall方法(这个方法应在原型对象上,因为其他函数是Function的实例)
+    Function.prototype.myCall = function (thisArg, ...args) {
+        //2.设置this（改变this指向）和调用原函数
+        //设置this
+        const key = Symbol('key')
+        thisArg[key] = this   //可以理解为给这个对象加了一个方法
+        //3.接收剩余参数和返回结果
+        console.log(args);//arg是一个数组
+        const res = thisArg[key](...args)//调用这个方法
+        delete thisArg[key]//把this刚添加的东西删除，就得到了原来的内容
+        return res
+    }
+
+    //测试代码
+    const food = {
+        name: '薯片'
+    }
+    function func(num1, num2) {
+        console.log(this);
+        return num1 + num2
+    }
+    //调用mycall方法
+    const res = func.myCall(food, 2, 3)
+    console.log(res);
+</script>
+
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>手写bind方法</h2>
+    <script>
+        /* 
+        手写bind方法
+        1.定义myBind方法
+        2.返回绑定this的新函数
+        3.合并绑定和新传入的参数
+         */
+        // 1.定义myBind方法
+        Function.prototype.myBind = function (thisArg, ...args) {
+            //2.返回绑定this的新函数
+            return (...funArgs) => {
+                //3.合并绑定和新传入的参数
+             return this.call(thisArg,...args,...funArgs)
+            }
+        }
+        //测试代码
+        const food = {
+            name: '薯片'
+        }
+        function func(num1, num2) {
+            console.log(this);
+            return num1 + num2
+        }
+        //调用myBind方法
+        const newFunc = func.myBind(food, 4)
+        const res=newFunc(2)
+        console.log(res);
+    </script>
+</body>
+
+</html>
