@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>then方法-失败和成功的回调函数</h2>
+    <script>
+        /*
+        then方法-失败和成功的回调函数
+        1.添加实例方法
+        2.参数判断
+        2.1执行成功回调
+        2.2执行失败回调
+        
+         */
+        const PENDING = 'pending'
+        const FULFILLED = 'fulfilled'
+        const REJECTED = 'rejected'
+
+        class myPromise {
+            constructor(func) {
+                this.state = PENDING
+                this.result = undefined
+                const resolve = (result) => {
+                    
+                    if (this.state === PENDING) {
+                        this.state = FULFILLED
+                        this.result = result
+                       
+                    }
+
+                }
+                const reject = (result) => {
+                    if (this.state === PENDING) {
+                        this.state = REJECTED
+                        this.result = result
+                       
+                    }
+
+                }
+                func(resolve, reject)
+            }
+then(onFulfilled,onRejected){
+    onFulfilled=typeof onFulfilled==="function"?onFulfilled:x=>x
+    onRejected=typeof onRejected==="function"?onRejected:x=> {throw x}
+    if(this.state=FULFILLED){
+        onFulfilled(this.result)
+    }else if(this.state=REJECTED){
+        onRejected(this.result)
+    }
+
+}
+
+
+        }
+        /*       测试代码         */
+        const p = new myPromise((resolve, reject) => {
+            console.log('执行了');
+            resolve('success')
+            //reject('error')
+        })
+        p.then(res => {
+            console.log(res);
+         },
+            err => { })
+    </script>
+</body>
+
+</html>
