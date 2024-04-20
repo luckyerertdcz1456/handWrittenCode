@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>函数柯理化</h2>
+    <script>
+        //例：求sum(1)(2)
+        /*  function sum(a){
+              return function(b){
+                  return a+b
+              }
+          }
+          console.log(sum(1)(2)); */
+        //面试题
+        //------------需求-----------
+        //改写函数sum实现：参数传递到5个即可实现累加
+        //sum(1)(2)(3)(4)(5)
+        //sum(1,2)(3,4,5)
+        let nums = []
+        function sum(...args) {
+            nums.push(...args)
+            if(nums.length>=5){
+                const res=nums.slice(0,5).reduce((p,v)=>p+v,0)
+                nums=[]
+                return res
+            }else{
+                return sum
+            }
+        }
+        //改进：可以自定义参数个数
+        function sumMaker(length){
+            let nums = []
+        function sum(...args) {
+            nums.push(...args)
+            if(nums.length>=length){
+                const res=nums.slice(0,length).reduce((p,v)=>p+v,0)
+                nums=[]
+                return res
+            }else{
+                return sum
+            }
+        }
+        }
+        //函数柯理化的运用-类型判断
+        //function typeOf
+    </script>
+</body>
+
+</html>

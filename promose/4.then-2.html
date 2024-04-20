@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>then方法-异步及多次调用</h2>
+    <script>
+        /* 
+        then方法-异步及多次调用
+        1.定义实例属性
+        2.保存回调函数
+        3.调用成功的回调函数
+        4.调用失败的回调函数
+        */
+        const PENDING = 'pending'
+        const FULFILLED = 'fulfilled'
+        const REJECTED = 'rejected'
+
+        class myPromise {
+            state = PENDING
+            result = undefined
+            //1.定义实例属性
+            #handlers = []
+            constructor(func) {
+                const resolve = (result) => {
+
+                    if (this.state === PENDING) {
+                        this.state = FULFILLED
+                        this.result = result
+                        //3.调用成功的回调函数
+                        this.#handlers.forEach(({ onFulfilled }) => {
+                            onFulfilled(this.result)
+                        })
+                    }
+
+                }
+                const reject = (result) => {
+                    if (this.state === PENDING) {
+                        this.state = REJECTED
+                        this.result = result
+                        //4.调用失败的回调函数
+                        this.#handlers.forEach(({ onRejected }) => {
+                            onRejected(this.result)
+                        })
+                    }
+
+                }
+                func(resolve, reject)
+            }
+            then(onFulfilled, onRejected) {
+                onFulfilled = typeof onFulfilled === "function" ? onFulfilled : x => x
+                onRejected = typeof onRejected === "function" ? onRejected : x => { throw x }
+                if (this.state = FULFILLED) {
+                    onFulfilled(this.result)
+                } else if (this.state = REJECTED) {
+                    onRejected(this.result)
+                }else if(this.state===PENDING){
+                    this.#handlers.push({
+                        onFulfilled,onRejected
+                    })
+                }
+
+            }
+
+
+        }
+        /*       测试代码         */
+        const p = new myPromise((resolve, reject) => {
+            console.log('执行了');
+            resolve('success')
+            //reject('error')
+        })
+        p.then(res => {
+            console.log(res);
+        },
+            err => { })
+    </script>
+</body>
+
+</html>
