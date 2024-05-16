@@ -13,20 +13,36 @@
     <script>
         /* 异步任务-函数封装
         1.定义函数
-        2.调用核心api()
+        2.调用核心api()(执行异步任务的api)
+           (1)queueMicrotask()给它传入一个回调函数，这个函数就会异步执行
+
+           (2)  const obs=new MutationObserver(callback)
+                const divnode=document.createElement('div')
+                obs.observe(divnode,{childList:true})监测字结点有没有发生改变
+                divnode.innerHTML='ok'//通过这个方式改变，改变了就会执行回调函数
         3.封装函数
          */
+        /* 
+        1.异步任务2
+        vue:Promise.then,MutationObserver,setTimeout,setImmediate，queueMicrotask
+        选用：Promise.then,MutationObserver,setTimeout，queueMicrotask
+        queueMicrotask：node11,新式浏览器
+        MutationObserver：node不支持,ie11支持
+setTimeout:都支持
+
+        */
         //1.定义函数
-        function runAsynctask(callback){
-            if(typeof queueMicrotask==="function"){
+
+        function runAsynctask(callback) {
+            if (typeof queueMicrotask === "function") {
                 queueMicrotask(callback)
-            }else if(typeof MutationObserver==="function"){
-                const obs=new MutationObserver(callback)
-                const divnode=document.createElement('div')
-                obs.observe(divnode,{childList:true})
-                divnode.innerHTML='ok'
-            }else{
-                setTimeout(callback,0)
+            } else if (typeof MutationObserver === "function") {
+                const obs = new MutationObserver(callback)
+                const divnode = document.createElement('div')
+                obs.observe(divnode, { childList: true })
+                divnode.innerHTML = 'ok'
+            } else {
+                setTimeout(callback, 0)
             }
         }
         const PENDING = 'pending'
@@ -40,7 +56,6 @@
             #handlers = []
             constructor(func) {
                 const resolve = (result) => {
-
                     if (this.state === PENDING) {
                         this.state = FULFILLED
                         this.result = result
@@ -64,16 +79,34 @@
                 }
                 func(resolve, reject)
             }
+
+
             then(onFulfilled, onRejected) {
                 onFulfilled = typeof onFulfilled === "function" ? onFulfilled : x => x
                 onRejected = typeof onRejected === "function" ? onRejected : x => { throw x }
+                //使用封装的函数
                 if (this.state = FULFILLED) {
-                    onFulfilled(this.result)
+                    runAsynctask(() => {
+                        onFulfilled(this.result)
+                    })
+
                 } else if (this.state = REJECTED) {
-                    onRejected(this.result)
+                    runAsynctask(() => {
+                        onRejected(this.result)
+                    })
+
                 } else if (this.state === PENDING) {
                     this.#handlers.push({
-                        onFulfilled, onRejected
+                        onFulfilled: () => {
+                            runAsynctask(() => {
+                                onFulfilled(this.result)
+                            })
+                        }
+                        , onRejected:()=>{
+                            runAsynctask(() => {
+                               onRejected(this.result)
+                            })
+                        }
                     })
                 }
 
@@ -82,15 +115,16 @@
 
         }
         /*       测试代码         */
+        console.log('top');
         const p = new myPromise((resolve, reject) => {
-            console.log('执行了');
+            //console.log('执行了');
             resolve('success')
             //reject('error')
         })
         p.then(res => {
             console.log(res);
-        },
-            err => { })
+        }, err => { })
+        console.log('bottom');
     </script>
 </body>
 
