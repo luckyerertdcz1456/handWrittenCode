@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>静态方法-allsettled</h1>
+
+    <script>
+        //抽取函数
+        function resolvePromise(p2, x, resolve, reject) {
+            if (p2 === x) {
+
+                throw new TypeError('Chaining cycle detected for promise #<Promise>')
+            } else if (x instanceof myPromise) {
+                x.then(res => resolve(res), err => reject(err))
+            } else {
+                resolve(x)
+            }
+        }
+        function runAsynctask(callback) {
+            if (typeof queueMicrotask === "function") {
+                queueMicrotask(callback)
+            } else if (typeof MutationObserver === "function") {
+                const obs = new MutationObserver(callback)
+                const divnode = document.createElement('div')
+                obs.observe(divnode, { childList: true })
+                divnode.innerHTML = 'ok'
+            } else {
+                setTimeout(callback, 0)
+            }
+        }
+        const PENDING = 'pending'
+        const FULFILLED = 'fulfilled'
+        const REJECTED = 'rejected'
+
+        class myPromise {
+            state = PENDING
+            result = undefined
+            #handlers = []
+            constructor(func) {
+                const resolve = (result) => {
+                    if (this.state === PENDING) {
+                        this.state = FULFILLED
+                        this.result = result
+
+                        this.#handlers.forEach(({ onFulfilled }) => {
+                            onFulfilled(this.result)
+                        })
+                    }
+
+                }
+                const reject = (result) => {
+                    if (this.state === PENDING) {
+                        this.state = REJECTED
+                        this.result = result
+
+                        this.#handlers.forEach(({ onRejected }) => {
+                            onRejected(this.result)
+                        })
+                    }
+
+                }
+                try {
+                    func(resolve, reject)
+                } catch (error) {
+                    //console.log('err:',error);
+
+                    reject(error)
+                }
+
+            }
+
+
+            then(onFulfilled, onRejected) {
+                onFulfilled = typeof onFulfilled === "function" ? onFulfilled : x => x
+                onRejected = typeof onRejected === "function" ? onRejected : x => { throw x }
+                const p2 = new myPromise((resolve, reject) => {
+                    if (this.state === FULFILLED) {
+                        runAsynctask(() => {
+                            try {
+
+                                const x = onFulfilled(this.result)
+                                resolvePromise(p2, x, resolve, reject)
+
+                            } catch (error) {
+                                reject(error)
+                            }
+                        })
+
+                    } else if (this.state === REJECTED) {
+                        runAsynctask(() => {
+                            //1.处理异常
+                            try {
+                                //2.获取返回值
+                                const x = onRejected(this.result)
+                                //4.调用函数
+                                resolvePromise(p2, x, resolve, reject)
+                            } catch (error) {
+                                reject(error)
+                            }
+
+                        })
+
+                    } else if (this.state === PENDING) {
+                        this.#handlers.push({
+                            onFulfilled: () => {
+                                runAsynctask(() => {
+                                    try {
+
+                                        const x = onFulfilled(this.result)
+                                        resolvePromise(p2, x, resolve, reject)
+
+                                    } catch (error) {
+                                        reject(error)
+                                    }
+                                })
+                            }
+                            , onRejected: () => {
+                                runAsynctask(() => {
+                                    //1.处理异常
+                                    try {
+                                        //2.获取返回值
+                                        const x = onRejected(this.result)
+                                        //4.调用函数
+                                        resolvePromise(p2, x, resolve, reject)
+                                    } catch (error) {
+                                        reject(error)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+
+                return p2
+            }
+            //promise的实例方法
+            /* 
+            1.catch方法
+            1.1内部调用then方法
+            1.2处理异常
+            */
+            catch(onRejected) {
+                //因为满足链式调用，所以使用return
+                return this.then(undefined, onRejected)
+            }
+            /* 
+            finally方法
+            1.内部调用then
+            */
+            finally(onFinally) {
+                //成功失败都是调用相同的逻辑,支持链式编程 return
+                return this.then(onFinally, onFinally)
+            }
+            /* 
+       静态方法-resolve
+       1.判断传入值
+       2.1 Promise实例直接返回
+       2.2 普通值转化为Promise并返回(fulfilled状态)
+
+       */
+            static resolve(value) {
+                if (value instanceof myPromise) {
+                    return value
+                }
+                return new myPromise((resolve) => {
+                    resolve(value)
+                })
+            }
+            /* 
+            静态方法-reject
+            1.返回一个已拒绝的promise对象
+            */
+            static reject(value) {
+                return new myPromise((undefined, reject) => {
+                    reject(value)
+                })
+            }
+            /* 
+            静态方法-race
+            1.返回promise
+            2.判断传入的值是否为数组,不是数组，错误信息Argument is not iterable
+            3.等待第一个敲定(其实就是调用返回的Promise的resolve或reject方法表示敲定状态)
+            (当数组中的promise状态改变时才会调用then)
+            
+             */
+            static race(promises) {
+                return new myPromise((resolve, reject) => {
+                    if (!Array.isArray(promises)) {
+                        return reject(new TypeError('Argument is not iterable'))
+                    }
+                    promises.forEach(p => {
+                        myPromise.resolve(p).then(res => { resolve(res) }, err => { reject(err) })
+                    })
+                })
+            }
+            /* 
+            静态方法-all
+            接受一个 Promise 可迭代对象作为输入，并返回一个 Promise。
+            当所有输入的 Promise 都被兑现时，返回的 Promise 也将被兑现
+            （即使传入的是一个空的可迭代对象），并返回一个包含所有兑现值的数组。(元素顺序与传入的 promise 一致)
+            如果输入的任何 Promise 被拒绝，则返回的 Promise 将被拒绝，并带有第一个被拒绝的原因。
+            1.返回Promise实例
+            2.判断是否为数组
+            3.处理全部兑现
+            4.处理第一个拒绝
+             4.1 索引来记录，保障结果的顺序和promises数组的顺序是一样的
+             4.2判断全部兑现count===promises.length
+            5.空数组直接兑现
+            */
+            static all(promises) {
+                return new myPromise((resolve, reject) => {
+                    if (!Array.isArray(promises)) {
+                        return reject(new TypeError('Argument is not iterable'))
+                    }
+                    promises.length === 0 && resolve(promises)
+                    const results = []
+                    let count = 0//记录兑现的次数
+                    promises.forEach((p, index) => {
+                        myPromise.resolve(p).then(res => {
+                            results[index] = res
+                            count++
+                            count === promises.length && resolve(results)
+                        }, err => {
+                            //处理第一个拒绝
+                            reject(err)
+                        })
+                    })
+                })
+            }
+            /**
+        * 静态方法-allSettled
+        * 1. 返回Promise
+        * 2. 数组判断 错误信息: Argument is not iterable
+        * 3. 为空直接敲定
+        * 4. 等待全部敲定(状态为fulfilled)
+        *  4.1 记录结果
+        *  4.2 处理兑现{status:'fulfilled',value:''}
+        *  4.3 处理拒绝{status:'rejected',reason:''}
+        * */
+
+            static allSettled(promises) {
+                return new myPromise((resolve, reject) => {
+                    if (!Array.isArray(promises)) {
+                        return reject(new TypeError('Argument is not iterable'))
+                    }
+                    let count = 0
+                    const results = []
+                    promises.forEach((p, index) => {
+                        myPromise.resolve(p).then(res => {
+                            results[index] = { status: FULFILLED, value: res }
+                            count++
+                            count === promises.length && resolve(results)
+                        }, err => {
+                            results[index] = { status: REJECTED, reason: err }
+                            count++
+                            count === promises.length && resolve(results)
+                        })
+                    })
+                    //空数组，直接兑现（fulfilled）
+                    promises.length === 0 && resolve(promises)
+                })
+            }
+
+        }
+        // ------------- 测试代码 -------------
+        const p1 = myPromise.resolve(1)
+        const p2 = 2
+        const p3 = new myPromise((resolve, reject) => {
+            setTimeout(() => {
+                //resolve(2)
+                reject(3)
+            }, 1000)
+        })
+        myPromise.allSettled([p1, p2, p3]).then(res => {
+            console.log('allSettled-res:', res);
+        }, err => {
+            console.log('allSettled-err:', err);
+        })
+
+
+    </script>
+</body>
+
+</html>

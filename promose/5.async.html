@@ -85,12 +85,12 @@ setTimeout:都支持
                 onFulfilled = typeof onFulfilled === "function" ? onFulfilled : x => x
                 onRejected = typeof onRejected === "function" ? onRejected : x => { throw x }
                 //使用封装的函数
-                if (this.state = FULFILLED) {
+                if (this.state === FULFILLED) {
                     runAsynctask(() => {
                         onFulfilled(this.result)
                     })
 
-                } else if (this.state = REJECTED) {
+                } else if (this.state === REJECTED) {
                     runAsynctask(() => {
                         onRejected(this.result)
                     })
