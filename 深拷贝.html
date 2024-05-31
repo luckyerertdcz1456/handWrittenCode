@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        //-------------手写深拷贝----------------
+        const deepClone = (target, map = new WeakMap()) => {
+            //1.如果是基本数据类型则直接返回
+            if (typeof target !== 'object' || target === null) {
+                return target
+            }
+            // 2. 函数 正则 日期 MAP Set: 执行对应构造题, 返回新的对象
+            const constructor = target.constructor//对象的构造函数
+            if (/^(Function|RegExp|Date|Map|Set)$/i.test(constructor.name)) {
+                return new constructor(target)
+            }
+            // 3. 解决 共同引用 循环引用等问题
+            // 借用 `WeakMap` 来记录每次复制过的对象, 在递归过程中, 
+            //如果遇到已经复制过的对象, 则直接使用上次拷贝的对象, 不重新拷贝
+            if (map.get(target)) {
+                return map.get(target)
+            }
+            // 4. 创建新对象
+            const cloneTarget = Array.isArray(target) ? [] : {}
+            /* 这两行代码根据 `target` 是否是数组来创建一个新的数组或对象，并将其放入 `WeakMap` 中。
+            这样，在后续的递归克隆过程中，如果遇到这个对象，就可以直接使用 `WeakMap` 中记录的克隆对象。 */
+            map.set(target, cloneTarget)
+            // 5. 循环 + 递归处理
+            Object.keys(target).forEach(key => {
+                cloneTarget[key] = deepClone(target[key], map)
+            })
+
+            // 6. 返回最终结果
+            return cloneTarget
+        }
+
+        /*
+        WeakMap 的键是弱引用，这意味着如果没有任何其他强引用指向键所引用的对象，那么该对象可以被垃圾回收机制回收。
+        当使用 WeakMap 存储已经克隆过的对象时，如果原始对象不再被任何变量引用，那么与之关联的 WeakMap 条目也会自动消失，
+        从而避免了内存泄漏。
+        */
+
+        /*
+        这段代码定义了一个名为 `deepClone` 的函数，该函数用于深度克隆一个对象。深度克隆意味着它会递归地克隆对象的所有属性，
+        包括嵌套的对象和数组。代码中使用了 `WeakMap` 来解决循环引用的问题。
+        下面是代码的逐行解释：
+        ```javascript
+        // map 用于记录出现过的对象, 解决循环引用
+        const deepClone = (target, map = new WeakMap()) => {
+        ```
+        这两行代码定义了 `deepClone` 函数，它接受两个参数：`target` 是需要克隆的对象，`map` 是一个 `WeakMap` 实例，
+        用于记录在克隆过程中已经处理过的对象，以避免循环引用。
+        ```javascript
+        // 1. 对于基本数据类型(string、number、boolean……), 直接返回
+        if (typeof target !== 'object' || target === null) {
+        return target
+        }
+        ```
+        这两行代码检查 `target` 是否不是对象类型或者是否为 `null`。如果是，则直接返回 `target`，因为基本数据类型不需要克隆，可以直接返回。
+        ```javascript
+        // 2. 函数 正则 日期 MAP Set: 执行对应构造题, 返回新的对象
+        const constructor = target.constructor
+        if (/^(Function|RegExp|Date|Map|Set)$/i.test(constructor.name)) {
+        return new constructor(target)
+        }
+        ```
+        这两行代码获取 `target` 的构造函数 `constructor`，然后使用正则表达式测试 `constructor.name` 是否属于 
+        `Function`、`RegExp`、`Date`、`Map` 或 `Set` 这些类型。如果是这些类型，则直接使用 `new constructor(target)` 创建一个新的实例并返回。
+        ```javascript
+        // 3. 解决 共同引用 循环引用等问题
+        // 借用 `WeakMap` 来记录每次复制过的对象, 在递归过程中, 如果遇到已经复制过的对象, 则直接使用上次拷贝的对象, 不重新拷贝
+        if (map.get(target)) {
+        return map.get(target)
+        }
+        ```
+        这五行代码是解决循环引用的关键。`WeakMap` 用于记录每次克隆过的对象。如果在递归过程中遇到已经克隆过的对象，
+        则直接使用上次克隆的对象，而不重新克隆。
+        ```javascript
+        // 4. 创建新对象
+        const cloneTarget = Array.isArray(target) ? [] : {}
+        map.set(target, cloneTarget)
+        ```
+        这两行代码根据 `target` 是否是数组来创建一个新的数组或对象，并将其放入 `WeakMap` 中。这样，在后续的递归克隆过程中，
+        如果遇到这个对象，就可以直接使用 `WeakMap` 中记录的克隆对象。
+        ```javascript
+        // 5. 循环 + 递归处理
+        Object.keys(target).forEach(key => {
+        cloneTarget[key] = deepClone(target[key], map);
+        })
+        ```
+        这两行代码遍历 `target` 的所有属性，并对每个属性进行深度克隆。这里使用了递归，如果属性值也是对象，则继续调用 `deepClone` 函数。
+        ```javascript
+        // 6. 返回最终结果
+        return cloneTarget
+        }
+        ```
+        最后一行代码返回克隆后的目标对象。
+        总结来说，这段代码定义了一个深度克隆函数，它能够处理各种数据类型，包括对象、数组、函数、正则表达式、
+        日期、`Map` 和 `Set` 等，并且通过 `WeakMap` 解决了循环引用的问题。*/
+    </script>
+</body>
+
+</html>

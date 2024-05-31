@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        //-----------1.浅拷贝的数组方法--------------
+        /* const base = {
+            age: 18,
+            name: 'lh',
+        }
+
+        const arr = [1, 'moyuanjun', base]
+
+        arr.concat([])
+        arr.slice()
+        const arr2 = Array.from(arr)
+        console.log(arr2); */
+        //----------------手写浅拷贝-----------------
+        /* 
+        1.如果拷贝的对象是基本数据类型，直接返回
+        2.创建一个新对象
+        3.循环对象的所有属性，拷贝其属性值，如果是引用数据类型则拷贝的是地址
+        */
+         const clone = (target) => {
+             // 1. 对于基本数据类型(string、number、boolean……), 直接返回
+             if (typeof target !== 'object' || target === null) {
+                 return target
+             }
+ 
+             // 2. 创建新对象
+             const cloneTarget = Array.isArray(target) ? [] : {}
+ 
+             // 3. 循环 + 递归处理
+             Object.keys(target).forEach(key => {
+                 cloneTarget[key] = target[key];
+             })
+ 
+             return cloneTarget
+         }
+         const res = clone({ name: 1, user: { age: 18 } })
+         const res2 = clone(['a', 'b', 'c'])
+         console.log('res', res);
+         console.log('res2', res2);
+        
+        
+    </script>
+</body>
+
+</html>
