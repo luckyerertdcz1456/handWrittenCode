@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <script>
+        function debounce(fun, wait) {
+            let timer = null
+            return function () {
+                let context = this
+                let args = arguments
+                //如果存在定时器就清除，重新计时
+                if (timer) {
+                    clearTimeout(timer)
+                    timer = null
+                }
+                //设置定时器，使事件在间隔时间后执行
+                timer = setTimeout(() => {
+                    fun.apply(context,wait)
+
+                }, wait)
+            }
+        }
+    </script>
+</body>
+
+</html>

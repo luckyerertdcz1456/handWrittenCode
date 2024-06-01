@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="click-button">Click Me</button>
+    <script>
+        // 函数节流的实现
+        function throttle(fn, delay) {
+            let curTime = Date.now(); // 创建一个变量来存储上一次执行的时间
+            console.log('1',curTime);
+            return function () { // 返回一个新的函数，这个函数将作为节流函数的代理
+                let context = this, // 保存调用上下文，以便在回调中使用
+                    args = arguments, // 保存调用参数，以便在回调中使用
+                    nowTime = Date.now(); // 获取当前时间
+                // 如果当前时间减去上一次执行时间大于或等于指定的延迟时间，则执行函数
+                if (nowTime - curTime >= delay) {
+                    curTime = nowTime; // 更新上一次执行时间
+                    console.log('2',curTime);
+                   fn.apply(context, args); // 执行原始函数，并传入原始函数的上下文和参数
+                }
+            };
+        }
+      // 点击事件回调函数
+function logClick() {
+  console.log('Clicked!');
+}
+
+// 创建一个节流版本的logClick函数
+const throttledLogClick = throttle(logClick, 2000);
+
+// 用于测试的按钮
+const clickButton = document.getElementById('click-button');
+
+// 为按钮添加点击事件监听器，并使用节流函数
+clickButton.addEventListener('click', throttledLogClick);
+
+
+    </script>
+</body>
+
+</html>
